@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lava Rápido — Premium Soft Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: linear-gradient(165deg, #d8e2ec 0%, #eef2f7 100%);
+      min-height: 100vh;
+      padding: 32px 20px;
+      color: #152535;
+    }
+    .page-title { text-align: center; margin-bottom: 28px; }
+    .page-title h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+    .page-title p { font-size: 13px; color: #5A6B7C; margin-top: 4px; }
+
+    /* Phone frame */
+    .device {
+      max-width: 390px;
+      margin: 0 auto;
+      border-radius: 36px;
+      overflow: hidden;
+      box-shadow:
+        0 40px 80px rgba(26,61,92,0.22),
+        0 0 0 1px rgba(255,255,255,0.6) inset,
+        0 0 0 10px #1a1a1a;
+      background: #1a1a1a;
+    }
+
+    .app {
+      background: linear-gradient(165deg, #F7F9FB 0%, #EEF3F8 50%, #E8EEF4 100%);
+      min-height: 780px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Header glass */
+    .header {
+      background: linear-gradient(135deg, #1A3D5C 0%, #2B5F8C 100%);
+      padding: 14px 18px 18px;
+      color: #fff;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .logo {
+      width: 32px; height: 32px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5BA88C, #3d8a72);
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    .switcher {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.22);
+    }
+    .queue-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.95;
+    }
+    .queue-dot {
+      width: 8px; height: 8px;
+      background: #5BA88C;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(91,168,140,0.8);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.9); }
+    }
+
+    /* Board */
+    .board {
+      flex: 1;
+      padding: 16px 0 100px;
+      overflow-x: auto;
+      display: flex;
+      gap: 14px;
+      padding-left: 16px;
+      scroll-snap-type: x mandatory;
+    }
+    .board::-webkit-scrollbar { display: none; }
+
+    .column {
+      min-width: 260px;
+      scroll-snap-align: start;
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid rgba(43,95,140,0.08);
+    }
+    .col-prep { background: rgba(43,95,140,0.06); }
+    .col-wash { background: rgba(74,144,194,0.07); }
+    .col-fin  { background: rgba(123,107,168,0.06); }
+    .col-ready { background: rgba(91,168,140,0.08); }
+
+    .col-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+    .col-title { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+    .count-pill {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(8px);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(43,95,140,0.08);
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 16px rgba(43,95,140,0.08), 0 1px 3px rgba(21,37,53,0.04);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .card-prep::before { background: linear-gradient(90deg, #2B5F8C, #4A90C2); }
+    .card-wash::before { background: linear-gradient(90deg, #4A90C2, #6BA8D4); }
+    .card-ready::before { background: linear-gradient(90deg, #5BA88C, #7BC4A8); }
+    .card-ready {
+      box-shadow: 0 4px 20px rgba(91,168,140,0.18), 0 1px 3px rgba(21,37,53,0.04);
+    }
+
+    .plate {
+      font-family: 'DM Mono', monospace;
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      background: #F0F4F8;
+      border: 1px solid rgba(43,95,140,0.1);
+      border-radius: 8px;
+      padding: 6px 12px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+    .service { font-size: 13px; color: #5A6B7C; margin-bottom: 4px; }
+    .client { font-size: 12px; color: #5A6B7C; }
+    .time-chip {
+      position: absolute;
+      bottom: 12px; right: 14px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #5A6B7C;
+    }
+
+    /* FAB */
+    .fab-wrap {
+      position: absolute;
+      bottom: 88px;
+      left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .fab {
+      pointer-events: auto;
+      background: linear-gradient(135deg, #2B5F8C 0%, #1A3D5C 100%);
+      color: #fff;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(43,95,140,0.35);
+      cursor: pointer;
+    }
+
+    /* Bottom nav glass */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(43,95,140,0.08);
+      padding: 10px 8px 24px;
+      display: flex;
+      justify-content: space-around;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #5A6B7C;
+    }
+    .nav-item.active {
+      color: #2B5F8C;
+    }
+    .nav-item.active span.icon {
+      background: rgba(91,168,140,0.14);
+      border-radius: 12px;
+      padding: 6px 14px;
+    }
+    .nav-item span.icon { font-size: 18px; }
+
+    /* Plate confirm preview */
+    .confirm-preview {
+      max-width: 390px;
+      margin: 32px auto 0;
+      background: #fff;
+      border-radius: 24px;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: 0 12px 40px rgba(43,95,140,0.12);
+    }
+    .confirm-preview h2 { font-size: 14px; color: #5A6B7C; font-weight: 500; margin-bottom: 20px; }
+    .plate-hero {
+      font-family: 'DM Mono', monospace;
+      font-size: 36px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      padding: 20px 32px;
+      border: 2px solid #2B5F8C;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #fff 0%, #F7F9FB 100%);
+      display: inline-block;
+      margin-bottom: 24px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 4px 16px rgba(43,95,140,0.1);
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #2B5F8C, #1A3D5C);
+      color: #fff;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 16px rgba(43,95,140,0.25);
+    }
+    .btn-ghost {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      background: transparent;
+      color: #5A6B7C;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .section-label {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #5A6B7C;
+      margin: 28px 0 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-title">
+    <h1>Lava Rápido — Premium Soft</h1>
+    <p>Direção A revisada · Plus Jakarta Sans + DM Mono · glass + depth</p>
+  </div>
+
+  <div class="device">
+    <div class="app">
+      <header class="header">
+        <div class="header-top">
+          <div class="logo">💧</div>
+          <div class="queue-badge"><span class="queue-dot"></span> 8 na fila</div>
+          <div class="avatar"></div>
+        </div>
+        <div class="switcher">📍 Unidade Centro ▾</div>
+      </header>
+
+      <div class="board">
+        <div class="column col-prep">
+          <div class="col-head">
+            <span class="col-title">Preparação</span>
+            <span class="count-pill">3</span>
+          </div>
+          <div class="card card-prep">
+            <div class="plate">ABC1D23</div>
+            <div class="service">✦ Completa SUV</div>
+            <div class="client">João · (11) 98765-4321</div>
+            <span class="time-chip">4 min</span>
+          </div>
+          <div class="card card-prep">
+            <div class="plate">FGH3J89</div>
+            <div class="service">✦ Simples</div>
+            <div class="client">Maria · (11) 91234-5678</div>
+            <span class="time-chip">12 min</span>
+          </div>
+        </div>
+
+        <div class="column col-wash">
+          <div class="col-head">
+            <span class="col-title">Lavando</span>
+            <span class="count-pill">5</span>
+          </div>
+          <div class="card card-wash">
+            <div class="plate">XYZ9K87</div>
+            <div class="service">✦ Completa</div>
+            <div class="client">Pedro · (11) 99876-5432</div>
+            <span class="time-chip">8 min</span>
+          </div>
+        </div>
+
+        <div class="column col-fin">
+          <div class="col-head">
+            <span class="col-title">Finalização</span>
+            <span class="count-pill">2</span>
+          </div>
+        </div>
+
+        <div class="column col-ready">
+          <div class="col-head">
+            <span class="col-title">Pronto</span>
+            <span class="count-pill">4</span>
+          </div>
+          <div class="card card-ready">
+            <div class="plate">DEF4G56</div>
+            <div class="service">✦ Premium</div>
+            <div class="client">Ana · (11) 97654-3210</div>
+            <span class="time-chip">Pronto</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fab-wrap">
+        <button class="fab">＋ Lavagem</button>
+      </div>
+
+      <nav class="bottom-nav">
+        <div class="nav-item active"><span class="icon">▦</span>Board</div>
+        <div class="nav-item"><span class="icon">＋</span>Lavagem</div>
+        <div class="nav-item"><span class="icon">◎</span>Caixa</div>
+        <div class="nav-item"><span class="icon">⋯</span>Mais</div>
+      </nav>
+    </div>
+  </div>
+
+  <p class="section-label">Momento hero — confirmação placa</p>
+  <div class="confirm-preview">
+    <h2>Confirme a placa</h2>
+    <div class="plate-hero">ABC1D23</div>
+    <button class="btn-primary">Confirmar</button>
+    <button class="btn-ghost">Corrigir placa</button>
+  </div>
+</body>
+</html>

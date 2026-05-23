@@ -1,0 +1,1 @@
+{"version":3,"file":"cash-register.d.ts","sourceRoot":"","sources":["../../src/routes/cash-register.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,IAAI,EAAE,MAAM,MAAM,CAAC;AAM5B,OAAO,KAAK,EAAU,YAAY,EAAE,MAAM,kBAAkB,CAAC;AAgB7D,eAAO,MAAM,kBAAkB;eAAyB,YAAY;yCAAK,CAAC"}

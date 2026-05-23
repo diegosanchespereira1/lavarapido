@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: "standalone",
+  transpilePackages: ["@lava-rapido/shared", "@lava-rapido/api-client"],
 };
 
 export default nextConfig;

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lava Rápido — Design Directions</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; background: #eef2f5; padding: 24px; color: #1A2B3C; }
+    h1 { font-size: 1.5rem; margin-bottom: 8px; }
+    p.sub { color: #5A6B7C; margin-bottom: 24px; max-width: 640px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .dir { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+    .dir.chosen { outline: 3px solid #5BA88C; }
+    .dir-head { padding: 12px 16px; font-weight: 600; font-size: 14px; border-bottom: 1px solid #E8EEF2; }
+    .dir.chosen .dir-head { background: #5BA88C; color: #fff; }
+    .mock { background: #F7F9FB; min-height: 220px; padding: 12px; font-size: 12px; }
+    .tag { display: inline-block; background: #E8EEF2; padding: 2px 8px; border-radius: 4px; margin: 4px 4px 0 0; font-size: 10px; }
+    .rejected { opacity: .55; }
+    .rejected .dir-head::after { content: ' — rejeitada'; font-weight: 400; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Design Directions — Lava Rápido</h1>
+  <p class="sub">Direção A (Board Hero) escolhida para MVP. Demais opções documentadas para referência.</p>
+
+  <div class="grid">
+    <div class="dir chosen">
+      <div class="dir-head">A — Board Hero ✓ ESCOLHIDA</div>
+      <div class="mock">
+        <div style="background:#2B5F8C;color:#fff;padding:8px 12px;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between">
+          <span>Todas as unidades ▾</span><span>Fila: 24</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+          <div style="background:#E8EEF2;padding:6px;border-radius:6px">Prep <b>6</b></div>
+          <div style="background:#E8EEF2;padding:6px;border-radius:6px">Lav <b>8</b></div>
+          <div style="background:#E8EEF2;padding:6px;border-radius:6px">Fin <b>4</b></div>
+          <div style="background:#E8EEF2;padding:6px;border-radius:6px">Pronto <b>6</b></div>
+        </div>
+        <div style="margin-top:12px;background:#2B5F8C;color:#fff;text-align:center;padding:10px;border-radius:8px">+ Lavagem</div>
+        <span class="tag">BranchContextSwitcher</span><span class="tag">FAB</span><span class="tag">FR-7</span>
+      </div>
+    </div>
+
+    <div class="dir rejected">
+      <div class="dir-head">B — Dashboard first</div>
+      <div class="mock">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div style="background:#fff;padding:12px;border-radius:8px;border:1px solid #E8EEF2"><b>R$ 4.280</b><br>Hoje</div>
+          <div style="background:#fff;padding:12px;border-radius:8px;border:1px solid #E8EEF2"><b>47</b><br>Carros</div>
+        </div>
+        <div style="background:#E8EEF2;padding:40px;text-align:center;border-radius:8px;color:#5A6B7C">Board secundário ↓</div>
+        <span class="tag">Operador perde foco</span>
+      </div>
+    </div>
+
+    <div class="dir rejected">
+      <div class="dir-head">C — Lista densa</div>
+      <div class="mock">
+        <div style="background:#fff;padding:8px;border-radius:6px;margin-bottom:4px;border-left:3px solid #2B5F8C">ABC1D23 · Completa · Lavando</div>
+        <div style="background:#fff;padding:8px;border-radius:6px;margin-bottom:4px;border-left:3px solid #5BA88C">DEF4G56 · Simples · Pronto</div>
+        <div style="background:#fff;padding:8px;border-radius:6px;border-left:3px solid #4A90C2">XYZ9K87 · SUV · Prep</div>
+        <span class="tag">Sem mental model fila</span>
+      </div>
+    </div>
+
+    <div class="dir rejected">
+      <div class="dir-head">D — ERP sidebar</div>
+      <div class="mock" style="display:flex">
+        <div style="width:80px;background:#1A2B3C;color:#fff;padding:8px;font-size:9px;line-height:2">Board<br>Caixa<br>Clientes<br>Relatórios<br>Estoque<br>NF-e<br>Equipe<br>Config</div>
+        <div style="flex:1;padding:8px;color:#5A6B7C;font-size:11px">Conteúdo comprimido…</div>
+        <span class="tag">Non-Goal</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

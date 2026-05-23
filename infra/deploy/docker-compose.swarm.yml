@@ -1,0 +1,180 @@
+# Stack Lava Rápido — Docker Swarm + Portainer + Traefik
+#
+# Deploy na VPS (recomendado):
+#   git clone ... && cd lava-rapido
+#   cp infra/deploy/.env.example infra/deploy/.env   # editar senhas + MinIO
+#   ./infra/deploy/deploy.sh
+#
+# Pré-requisitos: Swarm ativo, rede HMLStratosNetwork, MinIO na mesma rede.
+
+version: "3.7"
+
+configs:
+  lava_postgres_init:
+    file: ./postgres/01-keycloak-db.sql
+  lava_keycloak_realm:
+    file: ./keycloak/lava-rapido-realm.json
+
+services:
+
+## --------------------------- LAVA RÁPIDO — DADOS --------------------------- ##
+
+  lava-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - lava_postgres_data:/var/lib/postgresql/data
+    configs:
+      - source: lava_postgres_init
+        target: /docker-entrypoint-initdb.d/01-keycloak-db.sql
+    networks:
+      - HMLStratosNetwork
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  lava-redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - lava_redis_data:/data
+    networks:
+      - HMLStratosNetwork
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+## --------------------------- LAVA RÁPIDO — PLATAFORMA --------------------------- ##
+
+  lava-keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://lava-postgres:5432/keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME}
+      KC_HOSTNAME_STRICT: "false"
+      KC_PROXY: edge
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+    configs:
+      - source: lava_keycloak_realm
+        target: /opt/keycloak/data/import/lava-rapido-realm.json
+    networks:
+      - HMLStratosNetwork
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=HMLStratosNetwork
+        - traefik.http.routers.lava_keycloak.rule=Host(`${KEYCLOAK_HOST}`)
+        - traefik.http.routers.lava_keycloak.entrypoints=websecure
+        - traefik.http.routers.lava_keycloak.tls.certresolver=letsencryptresolver
+        - traefik.http.services.lava_keycloak.loadbalancer.server.port=8080
+        - traefik.http.services.lava_keycloak.loadbalancer.passHostHeader=true
+        - traefik.http.routers.lava_keycloak.service=lava_keycloak
+
+  lava-api:
+    image: ${LAVA_API_IMAGE}
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      DEV_AUTH: ${DEV_AUTH:-true}
+      JWT_SECRET: ${JWT_SECRET:-}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      CORS_ORIGIN: https://${WEB_HOST}
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@lava-postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://lava-redis:6379/0
+      RUN_DB_PUSH: ${RUN_DB_PUSH:-true}
+      RUN_DB_SEED: ${RUN_DB_SEED:-true}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET:-lava-rapido}
+      MINIO_REGION: ${MINIO_REGION:-eu-south}
+    networks:
+      - HMLStratosNetwork
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=HMLStratosNetwork
+        - traefik.http.routers.lava_api.rule=Host(`${API_HOST}`)
+        - traefik.http.routers.lava_api.entrypoints=websecure
+        - traefik.http.routers.lava_api.tls.certresolver=letsencryptresolver
+        - traefik.http.services.lava_api.loadbalancer.server.port=3001
+        - traefik.http.services.lava_api.loadbalancer.passHostHeader=true
+        - traefik.http.routers.lava_api.service=lava_api
+
+  lava-web:
+    image: ${LAVA_WEB_IMAGE}
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    networks:
+      - HMLStratosNetwork
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=HMLStratosNetwork
+        - traefik.http.routers.lava_web.rule=Host(`${WEB_HOST}`)
+        - traefik.http.routers.lava_web.entrypoints=websecure
+        - traefik.http.routers.lava_web.tls.certresolver=letsencryptresolver
+        - traefik.http.services.lava_web.loadbalancer.server.port=3000
+        - traefik.http.services.lava_web.loadbalancer.passHostHeader=true
+        - traefik.http.routers.lava_web.service=lava_web
+
+## --------------------------- LAVA RÁPIDO --------------------------- ##
+
+volumes:
+  lava_postgres_data:
+    external: true
+    name: lava_postgres_data
+  lava_redis_data:
+    external: true
+    name: lava_redis_data
+
+networks:
+  HMLStratosNetwork:
+    external: true
+    name: HMLStratosNetwork

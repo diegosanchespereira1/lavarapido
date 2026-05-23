@@ -1,0 +1,80 @@
+import { CreateBucketCommand, HeadBucketCommand, S3Client as S3, } from "@aws-sdk/client-s3";
+export function getMinioConfig() {
+    const endpoint = process.env.MINIO_ENDPOINT?.trim();
+    const accessKey = process.env.MINIO_ACCESS_KEY?.trim();
+    const secretKey = process.env.MINIO_SECRET_KEY?.trim();
+    const bucket = process.env.MINIO_BUCKET?.trim() || "lava-rapido";
+    const region = process.env.MINIO_REGION?.trim() || "eu-south";
+    const publicUrl = process.env.MINIO_PUBLIC_URL?.trim() || null;
+    if (!endpoint || !accessKey || !secretKey)
+        return null;
+    return { endpoint, accessKey, secretKey, bucket, region, publicUrl };
+}
+function normalizeEndpoint(raw) {
+    return raw.startsWith("http") ? raw : `http://${raw}`;
+}
+/** Cliente S3 para operações internas (rede Docker → minio:9000). */
+export function createMinioClient() {
+    const cfg = getMinioConfig();
+    if (!cfg)
+        return null;
+    return new S3({
+        endpoint: normalizeEndpoint(cfg.endpoint),
+        region: cfg.region,
+        credentials: {
+            accessKeyId: cfg.accessKey,
+            secretAccessKey: cfg.secretKey,
+        },
+        forcePathStyle: true,
+    });
+}
+/** Cliente S3 com URL pública (presigned URLs acessíveis pelo browser). */
+export function createMinioPublicClient() {
+    const cfg = getMinioConfig();
+    if (!cfg?.publicUrl)
+        return createMinioClient();
+    return new S3({
+        endpoint: normalizeEndpoint(cfg.publicUrl),
+        region: cfg.region,
+        credentials: {
+            accessKeyId: cfg.accessKey,
+            secretAccessKey: cfg.secretKey,
+        },
+        forcePathStyle: true,
+    });
+}
+/**
+ * Verifica conectividade e garante bucket.
+ * Retorna null se MinIO não estiver configurado.
+ */
+export async function checkMinioConnection() {
+    const cfg = getMinioConfig();
+    const client = createMinioClient();
+    if (!cfg || !client)
+        return null;
+    try {
+        await client.send(new HeadBucketCommand({ Bucket: cfg.bucket }));
+        return true;
+    }
+    catch (e) {
+        const status = typeof e === "object" &&
+            e !== null &&
+            "$metadata" in e &&
+            typeof e.$metadata
+                ?.httpStatusCode === "number"
+            ? e.$metadata
+                .httpStatusCode
+            : undefined;
+        if (status === 404 || status === 403) {
+            try {
+                await client.send(new CreateBucketCommand({ Bucket: cfg.bucket }));
+                return true;
+            }
+            catch {
+                return false;
+            }
+        }
+        return false;
+    }
+}
+//# sourceMappingURL=minio.js.map

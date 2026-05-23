@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lava Rápido
 
-## Getting Started
+SaaS multi-tenant para gestão de lava-rápido — board premium, multi-filial, caixa e operação **+ Lavagem**.
 
-First, run the development server:
+## Stack
+
+| Camada | Tecnologia |
+|--------|------------|
+| Web | Next.js 16, shadcn/ui, Tailwind 4 |
+| API | Hono, Drizzle, PostgreSQL |
+| Infra local | Docker (Postgres 16, Redis 7) |
+| Auth MVP | `DEV_AUTH` (demo) → Keycloak em produção |
+
+## Deploy VPS
+
+```bash
+cp infra/deploy/.env.example infra/deploy/.env   # editar senhas + MinIO
+./infra/deploy/deploy.sh
+```
+
+Guia completo: `infra/deploy/README.md`
+
+## Validar o MVP (local)
+
+### 1. Pré-requisitos
+
+- Node.js 20+
+- **Docker Desktop** em execução
+
+### 2. Setup (uma vez)
+
+```bash
+chmod +x scripts/setup.sh
+./scripts/setup.sh
+```
+
+Isso instala deps, sobe Postgres/Redis, aplica schema e popula dados demo.
+
+**Manual (alternativa):**
+
+```bash
+npm install
+cp .env.local.example .env.local
+cp apps/api/.env.example apps/api/.env
+
+docker compose -f infra/docker/docker-compose.yml up -d postgres redis
+
+npm --workspace=@lava-rapido/api run db:push
+npm --workspace=@lava-rapido/api run db:seed
+```
+
+### 3. Rodar
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| URL | Descrição |
+|-----|-----------|
+| http://localhost:3012/login | Login demo |
+| http://localhost:3012/board | Board Kanban (home) |
+| http://localhost:3011/v1/health | API health |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Login demo:**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Admin Demo** — todas as filiais + caixa consolidado
+- **Operador Demo** — só Filial Centro
 
-## Learn More
+## Roteiro de validação
 
-To learn more about Next.js, take a look at the following resources:
+1. Login como **Admin Demo** → board com colunas Preparação → Pronto
+2. Tocar **+ Lavagem** → placa `ABC1D23` → confirmar → tipo → cliente → salvar
+3. Mover card entre colunas (Próximo / Voltar)
+4. Trocar filial no header (Centro / Norte / Todas)
+5. **Caixa** — total do dia; consolidado vs filial
+6. **Mais → Filiais / Tipos / Clientes**
+7. Imprimir ticket após nova lavagem
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Web (:3012) + API (:3011) |
+| `npm run dev:web` | Só frontend |
+| `npm run dev:api` | Só API |
+| `npm run build` | Build produção web |
+| `npm run test:api` | Testes API (Postgres) |
 
-## Deploy on Vercel
+## Estrutura
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+apps/api/          API Hono REST
+packages/shared/   Tipos, placa Mercosul, DEMO_IDS
+packages/api-client/
+src/               Next.js web (board, caixa, config)
+infra/docker/      Postgres, Redis, Keycloak, MinIO
+lava-rapido/_bmad-output/   PRD, UX, épicos
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Documentação
+
+- `infra/deploy/README.md` — **deploy VPS (Portainer + Traefik + MinIO)**
+- `lava-rapido/_bmad-output/project-context.md` — regras para dev
+- `lava-rapido/_bmad-output/planning-artifacts/epics.md` — stories MVP
+- `lava-rapido/_bmad-output/implementation-artifacts/IMPLEMENTATION-STATUS.md` — status
+
+## Auth produção
+
+MVP usa `DEV_AUTH=true` com tokens `dev-admin` / `dev-operator`. Para Keycloak: configure realm `lava-rapido`, defina `DEV_AUTH=false` e `JWT_SECRET` na API.

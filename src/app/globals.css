@@ -1,26 +1,152 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans:
+    var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    var(--font-dm-mono), ui-monospace, "Cascadia Code", monospace;
+  --font-heading: var(--font-plus-jakarta), ui-sans-serif, system-ui;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* Brand — ux-color-themes Premium Soft */
+  --primary: #2b5f8c;
+  --primary-dark: #1a3d5c;
+  --accent: #5ba88c;
+
+  --text-main: #152535;
+  --text-muted: #5a6b7c;
+  --danger: #c93232;
+
+  --wash-mid: #4a90c2;
+  --wash-end: #6ba8d4;
+  --fin-start: #9582c4;
+  --fin-end: #7b6ba8;
+
+  --plate-bg: #f0f4f8;
+  --accent-soft: #5ba88c;
+
+  --sheet-bg: #fbfbfc;
+  --sheet-bg-muted: #eef3f9;
+
+  --glass-border: rgba(43, 95, 140, 0.12);
+  --glass-bg-strong: rgba(255, 255, 255, 0.94);
+  --glass-bottom: rgba(255, 255, 255, 0.78);
+
+  --app-gradient: linear-gradient(
+    165deg,
+    #f7f9fb 0%,
+    #eef3f8 50%,
+    #e8eef4 100%
+  );
+  --page-gradient: linear-gradient(165deg, #d8e2ec 0%, #eef2f7 100%);
+
+  /* shadcn mapping */
+  --background: transparent;
+  --foreground: var(--text-main);
+  --card: #ffffff;
+  --card-foreground: var(--text-main);
+  --popover: #ffffff;
+  --popover-foreground: var(--text-main);
+  --primary-foreground: #ffffff;
+  --secondary: rgba(43, 95, 140, 0.08);
+  --secondary-foreground: var(--primary);
+  --muted: rgba(43, 95, 140, 0.06);
+  --muted-foreground: var(--text-muted);
+  --accent-foreground: #145235;
+  --destructive: #c93232;
+  --border: rgba(43, 95, 140, 0.12);
+  --input: rgba(43, 95, 140, 0.14);
+  --ring: color-mix(in srgb, var(--primary) 45%, transparent);
+  --radius: 1rem;
+}
+
+.dark {
+  --background: #0f171f;
+  --foreground: #f4f8fc;
+  --card: #152029;
+  --card-foreground: #f4f8fc;
+  --popover: #152029;
+  --popover-foreground: #f4f8fc;
+  --primary: #6fa4d9;
+  --primary-foreground: #0f171f;
+  --secondary: #1d2f40;
+  --secondary-foreground: #f4f8fc;
+  --muted: #1d2f40;
+  --muted-foreground: #93a9bc;
+  --accent: rgba(91, 168, 140, 0.22);
+  --accent-foreground: #bfe8d9;
+  --destructive: #f87171;
+  --border: rgba(244, 248, 252, 0.1);
+  --input: rgba(244, 248, 252, 0.12);
+  --ring: color-mix(in srgb, var(--primary) 55%, transparent);
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.72;
+    transform: scale(0.92);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/40;
+  }
+  html {
+    @apply font-sans scroll-smooth;
+  }
+  body {
+    @apply min-h-dvh bg-background text-foreground;
+    font-family: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+    background-image: var(--page-gradient);
+    background-attachment: fixed;
+    color: var(--text-main);
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+  }
 }

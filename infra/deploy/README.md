@@ -38,15 +38,22 @@ LAVA_WEB_IMAGE=stratostech/lava-rapido-web:latest
 
 ---
 
-## 2. Portainer (só na VPS)
+## 2. Portainer — Git (recomendado)
 
-1. **Stacks → Add stack → Swarm**
-2. Nome: `lava-rapido`
-3. **Web editor**: cole `docker-compose.swarm.yml`
-4. **Environment variables**: cole `portainer.env.example` e edite:
-   - `CHANGE_ME_*` (senhas + MinIO)
-   - `LAVA_API_IMAGE` / `LAVA_WEB_IMAGE` (suas imagens no Docker Hub)
-5. **Deploy**
+| Campo | Valor |
+|-------|--------|
+| Repository URL | `https://github.com/diegosanchespereira1/lavarapido.git` |
+| Repository reference | `main` |
+| Compose path | **`docker-compose.yml`** |
+| Environment variables | cole `portainer.env.example` (edite senhas) |
+
+Guia: **`PORTAINER.md`** na raiz do repo.
+
+Depois de push no Git: stack → **Pull and redeploy**.
+
+### Web editor (alternativa)
+
+Cole `docker-compose.yml` + variáveis de `portainer.env.example`.
 
 ### Registry privado
 

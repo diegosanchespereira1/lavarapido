@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 ENV_FILE="$ROOT/infra/deploy/.env"
-COMPOSE="$ROOT/infra/deploy/docker-compose.swarm.yml"
+COMPOSE="$ROOT/docker-compose.yml"
 
 if [[ ! -f "$ENV_FILE" ]]; then
   cp "$ROOT/infra/deploy/.env.example" "$ENV_FILE"

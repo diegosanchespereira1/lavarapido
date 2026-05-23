@@ -15,7 +15,7 @@ STACK="${STACK_NAME:-lava-rapido}"
 "$ROOT/infra/deploy/validate-env.sh" "$ENV_FILE"
 
 docker stack deploy \
-  -c "$ROOT/infra/deploy/docker-compose.swarm.yml" \
+  -c "$ROOT/docker-compose.yml" \
   --env-file "$ENV_FILE" \
   --with-registry-auth \
   "$STACK"

@@ -33,6 +33,7 @@ fi
 
 API_IMAGE="${LAVA_API_IMAGE:-${USER}/lava-rapido-api:${TAG}}"
 WEB_IMAGE="${LAVA_WEB_IMAGE:-${USER}/lava-rapido-web:${TAG}}"
+KC_IMAGE="${LAVA_KEYCLOAK_IMAGE:-${USER}/lava-keycloak:${TAG}}"
 
 API_URL="${NEXT_PUBLIC_API_URL:-https://${API_HOST:-apilava.stratostech.com.br}}"
 KC_URL="${NEXT_PUBLIC_KEYCLOAK_URL:-https://${KEYCLOAK_HOST:-authlava.stratostech.com.br}}"
@@ -54,9 +55,14 @@ docker build -f "$ROOT/Dockerfile.web" \
   "$ROOT"
 docker push "$WEB_IMAGE"
 
+echo "==> Build + push Keycloak (realm embutido) → $KC_IMAGE"
+docker build -f "$ROOT/Dockerfile.keycloak" -t "$KC_IMAGE" "$ROOT"
+docker push "$KC_IMAGE"
+
 echo ""
 echo "Imagens publicadas:"
 echo "  LAVA_API_IMAGE=$API_IMAGE"
 echo "  LAVA_WEB_IMAGE=$WEB_IMAGE"
+echo "  LAVA_KEYCLOAK_IMAGE=$KC_IMAGE"
 echo ""
 echo "Cole essas linhas nas variáveis do Portainer e faça Deploy / Update stack."

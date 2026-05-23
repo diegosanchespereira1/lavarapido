@@ -1,23 +1,11 @@
 # =============================================================================
 # Lava Rápido — Stack Swarm (Portainer Git + Traefik + MinIO)
 #
-# Portainer Git:
-#   URL:    https://github.com/diegosanchespereira1/lavarapido.git
-#   Ref:    main
-#   Path:   docker-compose.yml
-#   Env:    portainer.env.example (cole no Portainer, edite senhas)
-#
-# Ver PORTAINER.md na raiz do repo.
+# Portainer Git: só baixa docker-compose.yml — SEM configs file: externos.
+# Keycloak: imagem stratostech/lava-keycloak (realm embutido) — veja push-dockerhub.sh
 # =============================================================================
 
 version: "3.7"
-
-# Configs: arquivos na raiz do repo (Portainer resolve file: relativo ao clone)
-configs:
-  lava_postgres_init:
-    file: ./postgres-init.sql
-  lava_keycloak_realm:
-    file: ./keycloak-realm.json
 
 services:
 
@@ -29,9 +17,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-lava_rapido}
     volumes:
       - lava_postgres_data:/var/lib/postgresql/data
-    configs:
-      - source: lava_postgres_init
-        target: /docker-entrypoint-initdb.d/01-keycloak-db.sql
     networks:
       - lava_network
     healthcheck:
@@ -67,11 +52,11 @@ services:
           - node.role == manager
 
   lava-keycloak:
-    image: quay.io/keycloak/keycloak:26.0
+    image: ${LAVA_KEYCLOAK_IMAGE:-stratostech/lava-keycloak:latest}
     command: start --import-realm
     environment:
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://lava-postgres:5432/keycloak
+      KC_DB_URL: jdbc:postgresql://lava-postgres:5432/${POSTGRES_DB:-lava_rapido}
       KC_DB_USERNAME: ${POSTGRES_USER:-lava}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
@@ -82,9 +67,6 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
-    configs:
-      - source: lava_keycloak_realm
-        target: /opt/keycloak/data/import/lava-rapido-realm.json
     networks:
       - lava_network
     deploy:

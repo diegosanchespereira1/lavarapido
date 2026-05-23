@@ -16,8 +16,13 @@ export type MinioConfig = {
 
 export function getMinioConfig(): MinioConfig | null {
   const endpoint = process.env.MINIO_ENDPOINT?.trim();
-  const accessKey = process.env.MINIO_ACCESS_KEY?.trim();
-  const secretKey = process.env.MINIO_SECRET_KEY?.trim();
+  // MinIO stack usa MINIO_ROOT_USER/PASSWORD; S3 SDK usa access/secret — aceitamos os dois nomes
+  const accessKey =
+    process.env.MINIO_ACCESS_KEY?.trim() ||
+    process.env.MINIO_ROOT_USER?.trim();
+  const secretKey =
+    process.env.MINIO_SECRET_KEY?.trim() ||
+    process.env.MINIO_ROOT_PASSWORD?.trim();
   const bucket = process.env.MINIO_BUCKET?.trim() || "lava-rapido";
   const region = process.env.MINIO_REGION?.trim() || "eu-south";
   const publicUrl = process.env.MINIO_PUBLIC_URL?.trim() || null;

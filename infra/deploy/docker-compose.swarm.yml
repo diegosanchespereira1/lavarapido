@@ -10,118 +10,14 @@
 # Ver PORTAINER.md na raiz do repo.
 # =============================================================================
 
-version: "3.8"
+version: "3.7"
 
+# Swarm não suporta configs.content — use file: (Git deploy no Portainer)
 configs:
   lava_postgres_init:
-    content: |
-      CREATE DATABASE keycloak;
-
+    file: ./infra/deploy/postgres/01-keycloak-db.sql
   lava_keycloak_realm:
-    content: |
-      {
-        "realm": "lava-rapido",
-        "enabled": true,
-        "sslRequired": "external",
-        "registrationAllowed": false,
-        "loginWithEmailAllowed": true,
-        "duplicateEmailsAllowed": false,
-        "resetPasswordAllowed": true,
-        "editUsernameAllowed": false,
-        "bruteForceProtected": true,
-        "clients": [
-          {
-            "clientId": "lava-rapido-web",
-            "name": "Lava Rápido Web",
-            "enabled": true,
-            "publicClient": true,
-            "protocol": "openid-connect",
-            "standardFlowEnabled": true,
-            "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": false,
-            "serviceAccountsEnabled": false,
-            "rootUrl": "https://lava.stratostech.com.br",
-            "baseUrl": "https://lava.stratostech.com.br",
-            "redirectUris": ["https://lava.stratostech.com.br/*"],
-            "webOrigins": ["https://lava.stratostech.com.br"],
-            "attributes": { "pkce.code.challenge.method": "S256" },
-            "protocolMappers": [
-              {
-                "name": "tenant_id",
-                "protocol": "openid-connect",
-                "protocolMapper": "oidc-usermodel-attribute-mapper",
-                "consentRequired": false,
-                "config": {
-                  "user.attribute": "tenant_id",
-                  "claim.name": "tenant_id",
-                  "jsonType.label": "String",
-                  "id.token.claim": "true",
-                  "access.token.claim": "true",
-                  "userinfo.token.claim": "true"
-                }
-              },
-              {
-                "name": "role",
-                "protocol": "openid-connect",
-                "protocolMapper": "oidc-usermodel-attribute-mapper",
-                "consentRequired": false,
-                "config": {
-                  "user.attribute": "role",
-                  "claim.name": "role",
-                  "jsonType.label": "String",
-                  "id.token.claim": "true",
-                  "access.token.claim": "true",
-                  "userinfo.token.claim": "true"
-                }
-              },
-              {
-                "name": "branch_ids",
-                "protocol": "openid-connect",
-                "protocolMapper": "oidc-usermodel-attribute-mapper",
-                "consentRequired": false,
-                "config": {
-                  "user.attribute": "branch_ids",
-                  "claim.name": "branch_ids",
-                  "jsonType.label": "String",
-                  "id.token.claim": "true",
-                  "access.token.claim": "true",
-                  "userinfo.token.claim": "true",
-                  "multivalued": "true"
-                }
-              }
-            ]
-          }
-        ],
-        "users": [
-          {
-            "username": "admin-demo",
-            "enabled": true,
-            "emailVerified": true,
-            "firstName": "Admin",
-            "lastName": "Demo",
-            "email": "admin@demo.local",
-            "credentials": [{ "type": "password", "value": "AdminDemo123!", "temporary": false }],
-            "attributes": {
-              "tenant_id": ["11111111-1111-4111-8111-111111111101"],
-              "role": ["admin"]
-            }
-          },
-          {
-            "username": "operador-demo",
-            "enabled": true,
-            "emailVerified": true,
-            "firstName": "Operador",
-            "lastName": "Demo",
-            "email": "operador@demo.local",
-            "credentials": [{ "type": "password", "value": "OperadorDemo123!", "temporary": false }],
-            "attributes": {
-              "tenant_id": ["11111111-1111-4111-8111-111111111101"],
-              "role": ["user"],
-              "branch_ids": ["22222222-2222-4222-8222-222222222201"]
-            }
-          }
-        ]
-      }
+    file: ./infra/deploy/keycloak/lava-rapido-realm.json
 
 services:
 
@@ -222,8 +118,10 @@ services:
       RUN_DB_SEED: ${RUN_DB_SEED:-true}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
       MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://apis3.stratostech.com.br}
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?defina MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?defina MINIO_SECRET_KEY}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?defina MINIO_ROOT_USER igual ao stack MinIO}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?defina MINIO_ROOT_PASSWORD igual ao stack MinIO}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-}
       MINIO_BUCKET: ${MINIO_BUCKET:-lava-rapido}
       MINIO_REGION: ${MINIO_REGION:-eu-south}
     networks:

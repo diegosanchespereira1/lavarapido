@@ -24,8 +24,6 @@ required=(
   POSTGRES_DB
   KEYCLOAK_ADMIN
   KEYCLOAK_ADMIN_PASSWORD
-  MINIO_ACCESS_KEY
-  MINIO_SECRET_KEY
 )
 
 missing=()
@@ -54,13 +52,14 @@ if [[ "$KEYCLOAK_ADMIN_PASSWORD" == CHANGE_ME* ]] || [[ "$KEYCLOAK_ADMIN_PASSWOR
   exit 1
 fi
 
-if [[ "$MINIO_ACCESS_KEY" == CHANGE_ME* ]]; then
-  echo "Erro: altere MINIO_ACCESS_KEY no .env"
+minio_user="${MINIO_ROOT_USER:-${MINIO_ACCESS_KEY:-}}"
+minio_pass="${MINIO_ROOT_PASSWORD:-${MINIO_SECRET_KEY:-}}"
+if [[ -z "$minio_user" ]] || [[ "$minio_user" == CHANGE_ME* ]] || [[ "$minio_user" == COLE_O_* ]]; then
+  echo "Erro: defina MINIO_ROOT_USER (mesmo valor do stack MinIO)"
   exit 1
 fi
-
-if [[ "$MINIO_SECRET_KEY" == CHANGE_ME* ]]; then
-  echo "Erro: altere MINIO_SECRET_KEY no .env"
+if [[ -z "$minio_pass" ]] || [[ "$minio_pass" == CHANGE_ME* ]] || [[ "$minio_pass" == COLE_O_* ]]; then
+  echo "Erro: defina MINIO_ROOT_PASSWORD (mesmo valor do stack MinIO)"
   exit 1
 fi
 

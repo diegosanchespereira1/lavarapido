@@ -22,8 +22,8 @@ Edite no Portainer (não commite senhas):
 ```
 POSTGRES_PASSWORD=...
 KEYCLOAK_ADMIN_PASSWORD=...
-MINIO_ACCESS_KEY=...      # MINIO_ROOT_USER
-MINIO_SECRET_KEY=...      # MINIO_ROOT_PASSWORD
+MINIO_ROOT_USER=...       # igual ao stack MinIO
+MINIO_ROOT_PASSWORD=...   # igual ao stack MinIO
 JWT_SECRET=...            # opcional se DEV_AUTH=true
 ```
 

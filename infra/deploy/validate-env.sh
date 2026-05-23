@@ -44,13 +44,23 @@ if [[ ${#missing[@]} -gt 0 ]]; then
   exit 1
 fi
 
-if [[ "$POSTGRES_PASSWORD" == "troque-esta-senha-postgres" ]]; then
+if [[ "$POSTGRES_PASSWORD" == CHANGE_ME* ]] || [[ "$POSTGRES_PASSWORD" == "troque-esta-senha-postgres" ]]; then
   echo "Erro: altere POSTGRES_PASSWORD no .env"
   exit 1
 fi
 
-if [[ "$KEYCLOAK_ADMIN_PASSWORD" == "troque-esta-senha-keycloak" ]]; then
+if [[ "$KEYCLOAK_ADMIN_PASSWORD" == CHANGE_ME* ]] || [[ "$KEYCLOAK_ADMIN_PASSWORD" == "troque-esta-senha-keycloak" ]]; then
   echo "Erro: altere KEYCLOAK_ADMIN_PASSWORD no .env"
+  exit 1
+fi
+
+if [[ "$MINIO_ACCESS_KEY" == CHANGE_ME* ]]; then
+  echo "Erro: altere MINIO_ACCESS_KEY no .env"
+  exit 1
+fi
+
+if [[ "$MINIO_SECRET_KEY" == CHANGE_ME* ]]; then
+  echo "Erro: altere MINIO_SECRET_KEY no .env"
   exit 1
 fi
 
@@ -64,8 +74,8 @@ if ! docker info 2>/dev/null | grep -q "Swarm: active"; then
   exit 1
 fi
 
-if ! docker network inspect HMLStratosNetwork >/dev/null 2>&1; then
-  echo "Erro: rede HMLStratosNetwork não existe (mesma rede do MinIO)."
+if ! docker network inspect "${DOCKER_NETWORK:-HMLStratosNetwork}" >/dev/null 2>&1; then
+  echo "Erro: rede ${DOCKER_NETWORK:-HMLStratosNetwork} não existe (mesma rede do MinIO)."
   exit 1
 fi
 

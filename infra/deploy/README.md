@@ -1,110 +1,124 @@
-# Deploy na VPS — 3 passos
+# Deploy na VPS — Portainer + Docker Hub (sem clone na VPS)
 
-## Pré-requisitos
+Stack autocontida: volumes automáticos, configs inline.  
+**Imagens vêm do Docker Hub** — build/push no seu Mac ou CI.
 
-- VPS com **Docker Swarm** ativo (`docker swarm init`)
-- **Portainer** + **Traefik** (entrypoint `websecure`, resolver `letsencryptresolver`)
-- **MinIO** na rede `HMLStratosNetwork` (serviço `minio`)
-- DNS apontando para a VPS:
-  - `lava.stratostech.com.br`
-  - `apilava.stratostech.com.br`
-  - `authlava.stratostech.com.br`
+## Fluxo resumido
 
-## Deploy (CLI na VPS)
-
-```bash
-git clone <seu-repo> lava-rapido
-cd lava-rapido
-
-cp infra/deploy/.env.example infra/deploy/.env
-nano infra/deploy/.env   # senhas + MINIO_ACCESS_KEY + MINIO_SECRET_KEY
-
-chmod +x infra/deploy/*.sh
-./infra/deploy/deploy.sh
+```
+Mac/CI  →  docker build + push  →  Docker Hub
+Portainer  →  cola compose + env  →  pull + Deploy
 ```
 
-O script valida ambiente, cria volumes, builda imagens e sobe o stack `lava-rapido`.
+**Não precisa** clonar repo na VPS.
 
-## Deploy (Portainer)
+---
 
-1. Clone o repo na VPS (ou faça build das imagens e push para registry)
-2. Na VPS, rode `./infra/deploy/build-images.sh infra/deploy/.env`
-3. Portainer → **Stacks → Add stack**
-4. Nome: `lava-rapido`
-5. Cole `infra/deploy/docker-compose.swarm.yml`
-6. **Environment variables**: cole o conteúdo de `infra/deploy/.env`
-7. Deploy
+## 1. Build e push (no seu Mac)
 
-> O compose usa paths relativos (`./postgres/`, `./keycloak/`). No Portainer, o stack precisa ser criado a partir do diretório `infra/deploy/` ou ajuste os paths.
+```bash
+cd lavarapido
+export DOCKERHUB_USER=stratostech   # default no script
+
+# opcional: ajuste domínios antes do build do web
+cp infra/deploy/.env.example infra/deploy/.env
+nano infra/deploy/.env
+
+./infra/deploy/push-dockerhub.sh
+```
+
+Anote as imagens geradas, ex.:
+
+```
+LAVA_API_IMAGE=stratostech/lava-rapido-api:latest
+LAVA_WEB_IMAGE=stratostech/lava-rapido-web:latest
+```
+
+> O build do **web** embute `NEXT_PUBLIC_API_URL` na imagem. Se mudar o domínio da API, rebuild + push de novo.
+
+---
+
+## 2. Portainer (só na VPS)
+
+1. **Stacks → Add stack → Swarm**
+2. Nome: `lava-rapido`
+3. **Web editor**: cole `docker-compose.swarm.yml`
+4. **Environment variables**: cole `portainer.env.example` e edite:
+   - `CHANGE_ME_*` (senhas + MinIO)
+   - `LAVA_API_IMAGE` / `LAVA_WEB_IMAGE` (suas imagens no Docker Hub)
+5. **Deploy**
+
+### Registry privado
+
+Se as imagens forem privadas, em **Registries** do Portainer adicione credenciais Docker Hub antes do deploy.
+
+---
+
+## Variáveis obrigatórias no Portainer
+
+| Variável | Exemplo |
+|----------|---------|
+| `POSTGRES_PASSWORD` | senha forte |
+| `KEYCLOAK_ADMIN_PASSWORD` | senha admin |
+| `MINIO_ACCESS_KEY` | `MINIO_ROOT_USER` do MinIO |
+| `MINIO_SECRET_KEY` | `MINIO_ROOT_PASSWORD` do MinIO |
+| `LAVA_API_IMAGE` | `stratostech/lava-rapido-api:latest` |
+| `LAVA_WEB_IMAGE` | `stratostech/lava-rapido-web:latest` |
+
+---
 
 ## Validar
 
 ```bash
-curl -s https://apilava.stratostech.com.br/v1/health
-curl -s https://apilava.stratostech.com.br/v1/ready
+curl https://apilava.stratostech.com.br/v1/health
+curl https://apilava.stratostech.com.br/v1/ready
 ```
 
-Abra `https://lava.stratostech.com.br/login`.
+Login demo (`DEV_AUTH=true`): `dev-admin` / `dev-operator`
 
-### Login demo (DEV_AUTH=true)
+---
 
-| Perfil | Token |
-|--------|-------|
-| Admin | `dev-admin` |
-| Operador | `dev-operator` |
+## Atualizar versão
 
-### Keycloak (após DEV_AUTH=false)
+1. Mac: `./infra/deploy/push-dockerhub.sh` (ou tag `IMAGE_TAG=v0.2.0`)
+2. Portainer: atualize `LAVA_*_IMAGE` se mudou a tag → **Update stack**
+3. Ou force pull: **Services → lava-api → Update → Pull latest**
 
-Realm `lava-rapido` importado automaticamente. Usuários demo:
-
-| User | Senha |
-|------|-------|
-| admin-demo | AdminDemo123! |
-| operador-demo | OperadorDemo123! |
-
-Edite redirect URIs em `infra/deploy/keycloak/lava-rapido-realm.json` se mudar `WEB_HOST`.
+---
 
 ## Pós-deploy
-
-No `.env`:
 
 ```
 RUN_DB_PUSH=false
 RUN_DB_SEED=false
-DEV_AUTH=false
 ```
 
-Redeploy:
+---
+
+## Alternativa: build na VPS
+
+Só se preferir não usar Docker Hub:
 
 ```bash
-./infra/deploy/update-stack.sh
+git clone ... && ./infra/deploy/build-images.sh
 ```
+
+---
 
 ## Arquivos
 
-| Arquivo | Função |
-|---------|--------|
-| `deploy.sh` | Deploy completo (validar + volumes + build + stack) |
-| `update-stack.sh` | Redeploy sem rebuild |
-| `build-images.sh` | Build API + Web |
-| `prepare-volumes.sh` | Volumes externos |
-| `validate-env.sh` | Checagem pré-deploy |
-| `docker-compose.swarm.yml` | Stack Swarm + Traefik |
-| `.env.example` | Variáveis |
-| `keycloak/lava-rapido-realm.json` | Realm import |
-| `postgres/01-keycloak-db.sql` | DB Keycloak |
+| Arquivo | Onde roda |
+|---------|-----------|
+| `push-dockerhub.sh` | Mac/CI — build + push |
+| `docker-compose.swarm.yml` | Portainer — colar |
+| `portainer.env.example` | Portainer — variáveis |
+| `build-images.sh` | VPS — build local (opcional) |
 
 ## Troubleshooting
 
-```bash
-docker stack services lava-rapido
-docker service logs lava-rapido_lava-api --tail 100
-docker service logs lava-rapido_lava-keycloak --tail 100
-```
-
 | Problema | Solução |
 |----------|---------|
-| `minio.responde: false` | Credenciais MinIO + serviço `minio` na mesma rede |
-| 502 no Traefik | Label `traefik.docker.network=HMLStratosNetwork` |
-| Keycloak não importa realm | Logs do serviço; realm só importa na 1ª subida |
-| CORS | `CORS_ORIGIN=https://` + valor de `WEB_HOST` |
+| 0/1 replicas | Imagem errada ou pull negado — confira `LAVA_*_IMAGE` e registry |
+| `No such image` | Tag não existe no Hub — rode push de novo |
+| Web chama API errada | Rebuild web com `API_HOST` correto no `.env` |
+| MinIO false | Credenciais ou rede `HMLStratosNetwork` |

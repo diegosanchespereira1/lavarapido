@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# Cria volumes externos exigidos pelo stack Swarm.
+# Verifica rede Docker (volumes são criados automaticamente pelo stack).
 set -euo pipefail
 
-for vol in lava_postgres_data lava_redis_data; do
-  if docker volume inspect "$vol" >/dev/null 2>&1; then
-    echo "Volume $vol já existe."
-  else
-    docker volume create "$vol"
-    echo "Volume $vol criado."
-  fi
-done
+NETWORK="${DOCKER_NETWORK:-HMLStratosNetwork}"
 
-echo "Pronto. Rede HMLStratosNetwork deve existir (mesma do MinIO)."
+if docker network inspect "$NETWORK" >/dev/null 2>&1; then
+  echo "Rede $NETWORK OK."
+else
+  echo "Erro: rede $NETWORK não existe (mesma rede do MinIO)."
+  echo "Crie ou confira o nome em DOCKER_NETWORK no .env"
+  exit 1
+fi
+
+echo "Volumes lava_postgres_data e lava_redis_data serão criados pelo stack (não precisa criar manualmente)."

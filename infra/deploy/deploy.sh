@@ -25,11 +25,17 @@ STACK="${STACK_NAME:-lava-rapido}"
 echo "==> Validando ambiente"
 "$ROOT/infra/deploy/validate-env.sh" "$ENV_FILE"
 
-echo "==> Criando volumes"
+echo "==> Verificando rede Docker"
 "$ROOT/infra/deploy/prepare-volumes.sh"
 
 echo "==> Build imagens (API + Web)"
-"$ROOT/infra/deploy/build-images.sh" "$ENV_FILE"
+if [[ "${SKIP_BUILD:-false}" == "true" ]]; then
+  echo "SKIP_BUILD=true — usando imagens remotas (Docker Hub):"
+  echo "  ${LAVA_API_IMAGE:-?}"
+  echo "  ${LAVA_WEB_IMAGE:-?}"
+else
+  "$ROOT/infra/deploy/build-images.sh" "$ENV_FILE"
+fi
 
 echo "==> Deploy stack: $STACK"
 docker stack deploy \

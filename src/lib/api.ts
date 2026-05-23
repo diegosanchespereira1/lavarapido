@@ -8,8 +8,7 @@ import type {
   WashType,
 } from "@/lib/types";
 import type { PaymentMethod } from "@lava-rapido/shared";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3011";
+import { resolveApiBase } from "@/lib/api-base";
 
 export const DEV_AUTH_STORAGE_KEY = "DEV_AUTH";
 
@@ -50,7 +49,7 @@ export async function apiFetch<T>(
     init;
   const token = tokenOverride ?? getToken();
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  const url = path.startsWith("http") ? path : `${API_BASE}${normalizedPath}`;
+  const url = path.startsWith("http") ? path : `${resolveApiBase()}${normalizedPath}`;
 
   const headers = new Headers(extraHeaders);
   if (token) headers.set("Authorization", `Bearer ${token}`);

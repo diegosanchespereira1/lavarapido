@@ -1,8 +1,7 @@
 "use client";
 
 import { DEV_AUTH_STORAGE_KEY } from "@/lib/api";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3011";
+import { resolveApiBase } from "@/lib/api-base";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -30,7 +29,7 @@ export async function consumeBoardEventStream({
   const token = getToken();
   if (!token) return;
 
-  const res = await fetch(`${API_BASE}/v1/events/stream`, {
+  const res = await fetch(`${resolveApiBase()}/v1/events/stream`, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "text/event-stream",

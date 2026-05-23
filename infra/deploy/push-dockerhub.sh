@@ -28,7 +28,7 @@ API_IMAGE="${LAVA_API_IMAGE:-${USER}/lava-rapido-api:${TAG}}"
 WEB_IMAGE="${LAVA_WEB_IMAGE:-${USER}/lava-rapido-web:${TAG}}"
 KC_IMAGE="${LAVA_KEYCLOAK_IMAGE:-${USER}/lava-keycloak:${TAG}}"
 
-API_URL="${NEXT_PUBLIC_API_URL:-https://${API_HOST:-apilava.stratostech.com.br}}"
+API_URL="${NEXT_PUBLIC_API_URL:-https://${API_HOST:-apilarapido.stratostech.com.br}}"
 KC_URL="${NEXT_PUBLIC_KEYCLOAK_URL:-https://${KEYCLOAK_HOST:-authlava.stratostech.com.br}}"
 
 echo "==> Plataforma: $PLATFORM"

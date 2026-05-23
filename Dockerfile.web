@@ -20,6 +20,7 @@ RUN npm ci
 
 COPY . .
 
+RUN npm --workspace=@lava-rapido/shared run build
 RUN npm run build
 
 FROM node:22-alpine AS release

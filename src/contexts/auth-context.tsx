@@ -52,6 +52,20 @@ function readStoredRole(): DevRole {
   return r === "admin" ? "admin" : "operator";
 }
 
+function roleFromToken(token: string | null): DevRole {
+  if (token === "dev-admin") return "admin";
+  if (token === "dev-operator") return "operator";
+  return readStoredRole();
+}
+
+function syncRoleWithToken(token: string | null): DevRole {
+  const role = roleFromToken(token);
+  if (typeof window !== "undefined" && token) {
+    localStorage.setItem(ROLE_KEY, role);
+  }
+  return role;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [role, setRole] = useState<DevRole>("operator");
@@ -60,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const t = localStorage.getItem(DEV_AUTH_STORAGE_KEY);
     setToken(t);
-    setRole(readStoredRole());
+    setRole(syncRoleWithToken(t));
     setReady(true);
   }, []);
 
@@ -74,14 +88,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .find((row) => row.startsWith(`${COOKIE_NAME}=`));
     const hasCookie = Boolean(cookiePair?.split("=").slice(1).join("=")?.length);
     if (!hasCookie) {
-      persistAuth(t, readStoredRole());
+      persistAuth(t, roleFromToken(t));
     }
   }, [ready]);
 
-  const login = useCallback((nextToken: string, nextRole: DevRole = "admin") => {
-    persistAuth(nextToken, nextRole);
+  const login = useCallback((nextToken: string, nextRole?: DevRole) => {
+    const role = nextRole ?? roleFromToken(nextToken);
+    persistAuth(nextToken, role);
     setToken(nextToken);
-    setRole(nextRole);
+    setRole(role);
   }, []);
 
   const logout = useCallback(() => {

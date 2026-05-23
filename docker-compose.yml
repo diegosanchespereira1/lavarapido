@@ -105,7 +105,7 @@ services:
       labels:
         - traefik.enable=true
         - traefik.docker.network=${DOCKER_NETWORK:-HMLStratosNetwork}
-        - traefik.http.routers.lava_api.rule=Host(`${API_HOST:-apilava.stratostech.com.br}`)
+        - traefik.http.routers.lava_api.rule=Host(`${API_HOST:-apilarapido.stratostech.com.br}`)
         - traefik.http.routers.lava_api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
         - traefik.http.routers.lava_api.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencryptresolver}
         - traefik.http.services.lava_api.loadbalancer.server.port=3001

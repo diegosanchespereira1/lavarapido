@@ -1,11 +1,13 @@
 "use client";
 
 import type { Branch } from "@/lib/types";
-import { createBranch, deleteBranch, listBranches, updateBranch } from "@/lib/api";
+import { createBranch, deleteBranch, listBranches, updateBranch, ApiError } from "@/lib/api";
+import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useState } from "react";
 
 export default function FiliaisPage() {
+  const { isAdmin } = useAuth();
   const [items, setItems] = useState<Branch[]>([]);
   const [name, setName] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
@@ -23,6 +25,11 @@ export default function FiliaisPage() {
         <h2 className="mb-5 text-xs font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]">
           Nova filial
         </h2>
+        {!isAdmin ? (
+          <p className="text-sm text-[var(--text-muted)]">
+            Somente administradores podem criar filiais. Saia e entre como Admin Demo.
+          </p>
+        ) : (
         <div className="flex flex-wrap gap-3">
           <input
             placeholder="Nome da unidade"
@@ -40,8 +47,12 @@ export default function FiliaisPage() {
                   setName("");
                   setMsg(null);
                   await refresh();
-                } catch {
-                  setMsg("Somente administradores podem criar filiais nesta demo.");
+                } catch (e) {
+                  setMsg(
+                    e instanceof ApiError
+                      ? e.message
+                      : "Falha ao criar filial. Verifique conexão com a API.",
+                  );
                 }
               })()
             }
@@ -49,6 +60,7 @@ export default function FiliaisPage() {
             Adicionar
           </Button>
         </div>
+        )}
       </section>
       <ul className="divide-y divide-black/[0.08] rounded-2xl border border-black/[0.08] bg-white/94">
         {items.map((b) => (

@@ -12,12 +12,12 @@
 
 version: "3.7"
 
-# Swarm não suporta configs.content — use file: (Git deploy no Portainer)
+# Configs: arquivos na raiz do repo (Portainer resolve file: relativo ao clone)
 configs:
   lava_postgres_init:
-    file: ./infra/deploy/postgres/01-keycloak-db.sql
+    file: ./postgres-init.sql
   lava_keycloak_realm:
-    file: ./infra/deploy/keycloak/lava-rapido-realm.json
+    file: ./keycloak-realm.json
 
 services:
 

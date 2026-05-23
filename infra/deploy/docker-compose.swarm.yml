@@ -25,7 +25,7 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-lava}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-lava_rapido}
     volumes:
       - lava_postgres_data:/var/lib/postgresql/data
@@ -75,7 +75,7 @@ services:
       KC_DB_USERNAME: ${POSTGRES_USER:-lava}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?defina KEYCLOAK_ADMIN_PASSWORD}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-https://authlava.stratostech.com.br}
       KC_HOSTNAME_STRICT: "false"
       KC_PROXY: edge
@@ -118,8 +118,8 @@ services:
       RUN_DB_SEED: ${RUN_DB_SEED:-true}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
       MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://apis3.stratostech.com.br}
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?defina MINIO_ROOT_USER igual ao stack MinIO}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?defina MINIO_ROOT_PASSWORD igual ao stack MinIO}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-}
       MINIO_BUCKET: ${MINIO_BUCKET:-lava-rapido}

@@ -28,9 +28,6 @@ services:
     deploy:
       mode: replicated
       replicas: 1
-      placement:
-        constraints:
-          - node.role == manager
 
   lava-redis:
     image: redis:7-alpine
@@ -47,9 +44,6 @@ services:
     deploy:
       mode: replicated
       replicas: 1
-      placement:
-        constraints:
-          - node.role == manager
 
   lava-keycloak:
     image: ${LAVA_KEYCLOAK_IMAGE:-stratostech/lava-keycloak:latest}
@@ -72,9 +66,6 @@ services:
     deploy:
       mode: replicated
       replicas: 1
-      placement:
-        constraints:
-          - node.role == manager
       labels:
         - traefik.enable=true
         - traefik.docker.network=${DOCKER_NETWORK:-HMLStratosNetwork}
@@ -93,7 +84,7 @@ services:
       DEV_AUTH: ${DEV_AUTH:-true}
       JWT_SECRET: ${JWT_SECRET:-}
       KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER:-https://authlava.stratostech.com.br/realms/lava-rapido}
-      CORS_ORIGIN: https://${WEB_HOST:-lava.stratostech.com.br}
+      CORS_ORIGIN: https://${WEB_HOST:-lavarapido.stratostech.com.br}
       DATABASE_URL: postgres://${POSTGRES_USER:-lava}:${POSTGRES_PASSWORD}@lava-postgres:5432/${POSTGRES_DB:-lava_rapido}
       REDIS_URL: redis://lava-redis:6379/0
       RUN_DB_PUSH: ${RUN_DB_PUSH:-true}
@@ -111,9 +102,6 @@ services:
     deploy:
       mode: replicated
       replicas: 1
-      placement:
-        constraints:
-          - node.role == manager
       labels:
         - traefik.enable=true
         - traefik.docker.network=${DOCKER_NETWORK:-HMLStratosNetwork}
@@ -135,13 +123,10 @@ services:
     deploy:
       mode: replicated
       replicas: 1
-      placement:
-        constraints:
-          - node.role == manager
       labels:
         - traefik.enable=true
         - traefik.docker.network=${DOCKER_NETWORK:-HMLStratosNetwork}
-        - traefik.http.routers.lava_web.rule=Host(`${WEB_HOST:-lava.stratostech.com.br}`)
+        - traefik.http.routers.lava_web.rule=Host(`${WEB_HOST:-lavarapido.stratostech.com.br}`)
         - traefik.http.routers.lava_web.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
         - traefik.http.routers.lava_web.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencryptresolver}
         - traefik.http.services.lava_web.loadbalancer.server.port=3000

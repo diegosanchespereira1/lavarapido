@@ -13,6 +13,7 @@ COPY packages/shared packages/shared
 COPY packages/api-client packages/api-client
 COPY tsconfig.json ./
 
+RUN npm --workspace=@lava-rapido/shared run build
 RUN npm --workspace=@lava-rapido/api run build
 
 FROM node:22-alpine AS release
@@ -25,6 +26,7 @@ COPY packages/api-client/package.json packages/api-client/
 
 RUN npm ci
 
+COPY --from=builder /repo/packages/shared packages/shared
 COPY --from=builder /repo/apps/api/dist apps/api/dist
 COPY apps/api/scripts apps/api/scripts
 COPY apps/api/drizzle.config.ts apps/api/
